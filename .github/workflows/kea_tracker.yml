@@ -1,3 +1,4 @@
+
 name: KEA UGCET Tracker
 
 on:
@@ -27,6 +28,16 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Test KEA connection
+        run: |
+          echo "Testing KEA website connection..."
+
+          curl -I -L \
+            --connect-timeout 30 \
+            --max-time 90 \
+            -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/150.0.0.0 Safari/537.36" \
+            "https://cetonline.karnataka.gov.in/kea/ugcet2026.aspx" || true
+
       - name: Run KEA tracker
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -43,3 +54,4 @@ jobs:
           git diff --cached --quiet || git commit -m "Update seen KEA notifications"
 
           git push
+```
