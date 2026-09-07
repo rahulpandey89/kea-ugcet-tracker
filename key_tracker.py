@@ -59,36 +59,27 @@ client = OpenAI(
 # ============================================================
 
 def scrape_kea():
+    html_file = os.getenv("KEA_HTML_FILE", "kea.html")
 
-    print("\n🌐 Fetching KEA website...")
+    print(f"📄 Reading KEA HTML from: {html_file}")
 
-    response = requests.get(
-        KEA_URL,
-        headers=HEADERS,
-        timeout=30
-    )
+    with open(html_file, "r", encoding="utf-8") as f:
+        html = f.read()
 
-    response.raise_for_status()
+    print(f"✅ HTML loaded: {len(html)} characters")
 
-    soup = BeautifulSoup(
-        response.text,
-        "html.parser"
-    )
+    soup = BeautifulSoup(html, "html.parser")
 
     accordion = soup.select_one(
         "#ContentPlaceHolder1_req_accordion"
     )
 
     if not accordion:
-
-        raise Exception(
-            "❌ KEA notification section nahi mila"
-        )
+        raise Exception("KEA notification section nahi mila")
 
     updates = []
 
     for card in accordion.select(".card"):
-
         link = card.select_one(
             ".card-header a[id^='lnk']"
         )
@@ -96,33 +87,23 @@ def scrape_kea():
         if not link:
             continue
 
-        title = link.get_text(
-            " ",
-            strip=True
-        )
+        title = link.get_text(" ", strip=True)
 
         href = link.get("href")
 
         if href:
             href = urljoin(
-                response.url,
+                "https://cetonline.karnataka.gov.in/kea/ugcet2026.aspx",
                 href
             )
 
-        update_id = link.get(
-            "id",
-            ""
-        ).replace("lnk", "")
-
         updates.append({
-            "id": update_id,
+            "id": link.get("id", "").replace("lnk", ""),
             "title": title,
             "url": href
         })
 
-    print(
-        f"✅ Total updates found: {len(updates)}"
-    )
+    print(f"📢 Total updates found: {len(updates)}")
 
     return updates
 
